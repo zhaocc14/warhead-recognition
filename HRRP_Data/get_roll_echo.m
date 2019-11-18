@@ -39,9 +39,9 @@ for n=1:Coh_pulse_num*Tsim
 %     phi = phi+init_conespin_phi;
     
     if flip_theta==1
-        theta = round(1800-(pi/2-theta)/pi*1800);
+        theta = mod(round(1800-(pi/2-theta)/pi*1800),1800)+1;
     else
-        theta =  round((pi/2-theta)/pi*1800);
+        theta =  mod(round((pi/2-theta)/pi*1800),1800)+1;
     end
     
     if complete_phi == 0
@@ -53,7 +53,7 @@ for n=1:Coh_pulse_num*Tsim
         phi = mod(round(phi/pi*1800),3600)+1;
     end
     
-    disp([theta,phi]);
+%     disp([theta,phi]);
     
     AmpRes=RCS(:,theta,phi);
     

@@ -24,7 +24,7 @@ for iter = 1 : L
     temp = D(:, selected_atom);
     a = pinv(temp) * x;
     r = x - temp * a;
-    fprintf('Iter %d, residual: %f\n', iter, norm(r,2));
+%     fprintf('Iter %d, residual: %f\n', iter, norm(r,2));
 %     if(abs(a(end))/abs(a(1))<0.5)
 %         break;
 %     end
