@@ -21,6 +21,7 @@ for i_rcs = 1:length(rcs_list)
         model_name = split(rcs_model,'.');
         model_name = char(model_name(1));
         if startsWith(model_name,'W')
+            continue;
             if model_name=="Warhead2-5"
                 bias.flip_theta = 0;
                 bias.translation_z = 0;
@@ -31,6 +32,7 @@ for i_rcs = 1:length(rcs_list)
                 bias.complete_phi = 0;
             end
         else
+            
             bias.flip_theta = 0;
             bias.translation_z = 0;
             bias.complete_phi = 1;
@@ -43,7 +45,7 @@ for i_rcs = 1:length(rcs_list)
         for i_set = SETS
             video_list = dir(char(RD_DATA_PATH+i_set));
             for i_video = 1:length(video_list)
-                if startsWith(video_list(i_video).name,model_name)
+                if startsWith(video_list(i_video).name,model_name) && ~exist(i_set+string(video_list(i_video).name),'file')
                     videodata = load(RD_DATA_PATH+i_set+string(video_list(i_video).name));
                     snr = split(video_list(i_video).name,'_');
                     snr = char(snr(2));
@@ -60,10 +62,11 @@ for i_rcs = 1:length(rcs_list)
                     end
                     HRRPmap = get_HRRPmap_from_echo(echo,Mn);
                     HRRP_bj = max(video_match,[],2);
-                    figure;imagesc(HRRPmap);
-                    figure;imagesc(reshape(HRRP_bj,29,256));
+%                     figure;imagesc(HRRPmap);
+%                     figure;imagesc(reshape(HRRP_bj,29,256));
                     save(ECHO_DATA_PATH+i_set+string(video_list(i_video).name),'echo','Mn','para');
                     save(i_set+string(video_list(i_video).name),'HRRPmap','label');
+                    disp(i_set+string(video_list(i_video).name))
                 end
             end
         end
