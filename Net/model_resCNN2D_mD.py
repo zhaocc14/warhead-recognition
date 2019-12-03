@@ -13,12 +13,12 @@ from random import shuffle
 '''
 os.environ["CUDA_VISIBLE_DEVICES"] = "1" 
 
-TrainDataPath = "..\\HRRP_Data\\train\\"
-TestDataPath = "..\\HRRP_Data\\val\\"
-EvalDataPath = '..\\HRRP_Data\\evaluate\\'
+TrainDataPath = "..\\mD_Data\\OMP_Data\\train\\"
+ValDataPath = "..\\mD_Data\\OMP_Data\\val\\"
+EvalDataPath = '..\\mD_Data\\OMP_Data\\evaluate\\'
 
 
-class RangeDopplerSequence(keras.utils.Sequence):
+class MicroDopplerDataLoader(keras.utils.Sequence):
     def __init__(self, x_set, batch_size, Augment=False):
         self.x = x_set
         self.batch_size = batch_size
@@ -29,7 +29,6 @@ class RangeDopplerSequence(keras.utils.Sequence):
 
     def __getitem__(self, idx):
         batch_x = self.x[idx * self.batch_size:(idx + 1) * self.batch_size]
-        # batch_y = self.y[idx * self.batch_size:(idx + 1) * self.batch_size]
 
         output_x = []
         output_y = []
@@ -39,11 +38,8 @@ class RangeDopplerSequence(keras.utils.Sequence):
                 index_begin = np.random.randint(29-13)
             else:
                 index_begin = 0
-            tmp = mat_tmp['HRRPmap'][index_begin:index_begin+13, :]
-            # tmp = np.max(tmp,axis=1)
-            # tmp = np.array([tmp[i_frame,:]/np.max(tmp[i_frame,:]) for i_frame in range(len(tmp))])
+            tmp = mat_tmp['mDmap'][index_begin:index_begin+13, :]
             tmp = tmp/np.max(tmp)
-            #output_x.append(np.roll((tmp.reshape(13, 256, 1)),randint(16),1))
             output_x.append((tmp.reshape(13, 256, 1)))
             if mat_tmp['label'] == 0:
                 output_y.append([1, 0])
@@ -70,7 +66,7 @@ class EvalTensorBoard(keras.callbacks.TensorBoard):
 
     def on_epoch_end(self, epoch, logs=None):
         loss, acc = model.evaluate_generator(
-            generator=RangeDopplerSequence(eval_list, 40))
+            generator=MicroDopplerDataLoader(eval_list, 40))
         logs.update({'eval_loss': loss, 'eval_acc': acc})
         super().on_epoch_end(epoch, logs)
         print('\n eval loss:{:2f},eval acc:{:.2f}'.format(loss, acc))
@@ -153,13 +149,10 @@ if __name__ == '__main__':
 
 
     flatten = keras.layers.Flatten()(pl)
-    # extend = keras.layers.TimeDistributed(keras.layers.Dense(64,activation='relu',name='extend'))(normalizayion_input)
-    # merge = keras.layers.concatenate([flatten,extend],axis=-1,name='merge')
     dp = keras.layers.Dropout(0.5)(flatten)
     dense = keras.layers.Dense(64, activation='relu')(dp)
     output = keras.layers.Dense(2, activation='softmax')(dense)
 
-    # model = keras.models.Model(inputs=[video_input,normalizayion_input], outputs=output)
     model = keras.models.Model(inputs=video_input, outputs=output)
     print(model.summary())
 
@@ -190,8 +183,8 @@ if __name__ == '__main__':
         TrainDataPath + name for name in os.listdir(TrainDataPath)
         if name.endswith('.mat')
     ]
-    test_list = [
-        TestDataPath + name for name in os.listdir(TestDataPath)
+    val_list = [
+        ValDataPath + name for name in os.listdir(ValDataPath)
         if name.endswith('.mat')
     ]
     eval_list = [
@@ -200,15 +193,15 @@ if __name__ == '__main__':
     ]
 	
     shuffle(train_list)
-    shuffle(test_list)
+    shuffle(val_list)
     shuffle(eval_list)
 
 
     # for i_epoch in range(10):
     history = model.fit_generator(
-        generator=RangeDopplerSequence(train_list, 30, True),
+        generator=MicroDopplerDataLoader(train_list, 30, Augment=True),
         epochs=150,
-        validation_data=RangeDopplerSequence(test_list, 30),
+        validation_data=MicroDopplerDataLoader(val_list, 30, Augment=False),
         callbacks=[
             reduce_lr, stop_val, tensorboard, check_point
         ])
@@ -216,5 +209,5 @@ if __name__ == '__main__':
 
     logger.info('model' + getTimeString(timestamp) + ' is create by ' +
                 sys.argv[0])
-    logger.info('get HRRP by OMP, data augment')
+    logger.info('get mD by OMP')
     logger.info('-' * 49)
