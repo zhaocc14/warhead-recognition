@@ -18,15 +18,6 @@ for i_rcs = 1:length(rcs_list)
         model_name = split(rcs_model,'.');
         model_name = char(model_name(1));
         
-        if model_name=="Warhead2-5"
-            bias.flip_theta = 0;
-            bias.translation_z = 0;
-            bias.complete_phi = 0;
-        else
-            bias.flip_theta = 1;
-            bias.translation_z = 1;
-            bias.complete_phi = 0;
-        end
 
         
         rcsdata=load(RCS_DATA_PATH+string(rcs_model));

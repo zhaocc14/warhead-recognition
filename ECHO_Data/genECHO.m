@@ -40,6 +40,7 @@ for i_rcs = 1:length(rcs_list)
                     para.los_azi = rand()*360/180*pi;
                     para.init_coneaxis_azi = rand()*360/180*pi;
                     para.init_conespin_phi = rand()*360/180*pi;
+                    para.label = '2';
                     
                     [echo,Mn] = get_precession_echo(para,RCS,bias,snr);
                         
