@@ -1,0 +1,15 @@
+2019-12-07 at 10:05:54 | INFO | model1912072139 is create by model_resCNN2D_mD.py
+2019-12-07 at 10:05:54 | INFO | mD, 3 classes
+2019-12-07 at 10:05:54 | INFO | -------------------------------------------------
+2019-12-07 at 10:11:43 | INFO | model1912072144 is create by model_resCNN2D_HRRP.py
+2019-12-07 at 10:11:43 | INFO | HRRP, 3 classes
+2019-12-07 at 10:11:43 | INFO | -------------------------------------------------
+2019-12-07 at 10:45:49 | INFO | model1912072144 is create by model_resCNN2D_fusion.py
+2019-12-07 at 10:45:49 | INFO | fusion, 3 classes
+2019-12-07 at 10:45:49 | INFO | -------------------------------------------------
+2019-12-08 at 03:12:34 | INFO | model1912081447 is create by model_resCNN2D_HRRP.py
+2019-12-08 at 03:12:34 | INFO | HRRP, 3 classes, new
+2019-12-08 at 03:12:34 | INFO | -------------------------------------------------
+2019-12-08 at 03:40:32 | INFO | model1912081450 is create by model_resCNN2D_fusion.py
+2019-12-08 at 03:40:32 | INFO | fusion, 3 classes, new
+2019-12-08 at 03:40:32 | INFO | -------------------------------------------------

@@ -1,0 +1,5 @@
+*.mat
+/AGO
+RCSData/*.m
+*.h5
+*ipynb*
