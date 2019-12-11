@@ -88,9 +88,9 @@ if __name__ == '__main__':
 
     initialiser = 'glorot_uniform'
     reg_lambda = 0.001
-    video_input = keras.layers.Input(shape=(len_video, res_r, 1),
+    HRRP_input = keras.layers.Input(shape=(len_video, res_r, 1),
                                      dtype='float32',
-                                     name='video_input')
+                                     name='HRRP_input')
     # normalizayion_input = keras.layers.Input(shape=(len_video,1),dtype='float32',name='normalization_input')
 
     pl = keras.layers.Conv2D(
@@ -102,7 +102,7 @@ if __name__ == '__main__':
         padding='same',
         kernel_initializer=initialiser,
         kernel_regularizer=tf.keras.regularizers.l2(reg_lambda),
-        name='Conv1')(video_input)
+        name='Conv1')(HRRP_input)
     k = 32
     for i_block in range(5):
         resblock_1_1 = keras.layers.BatchNormalization(name=str(i_block) +
@@ -159,8 +159,7 @@ if __name__ == '__main__':
     dense = keras.layers.Dense(64, activation='relu')(dp)
     output = keras.layers.Dense(2, activation='softmax')(dense)
 
-    # model = keras.models.Model(inputs=[video_input,normalizayion_input], outputs=output)
-    model = keras.models.Model(inputs=video_input, outputs=output)
+    model = keras.models.Model(inputs=HRRP_input, outputs=output)
     print(model.summary())
 
     model.compile(loss='categorical_crossentropy',
@@ -174,7 +173,7 @@ if __name__ == '__main__':
                                              patience=20,
                                              verbose=0,
                                              mode='auto')
-    modelname = 'model' + getTimeString(timestamp)
+    modelname = 'model_HRRP' + getTimeString(timestamp)
     check_point = keras.callbacks.ModelCheckpoint('model\\' + modelname +
                                                   '.h5',
                                                   monitor='val_acc',
@@ -214,7 +213,7 @@ if __name__ == '__main__':
         ])
 
 
-    logger.info('model' + getTimeString(timestamp) + ' is create by ' +
+    logger.info(modelname + ' is create by ' +
                 sys.argv[0])
     logger.info('get HRRP by OMP, data augment')
     logger.info('-' * 49)

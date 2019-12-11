@@ -40,10 +40,7 @@ class RangeDopplerSequence(keras.utils.Sequence):
             else:
                 index_begin = 0
             tmp = mat_tmp['HRRPmap'][index_begin:index_begin+13, :]
-            # tmp = np.max(tmp,axis=1)
-            # tmp = np.array([tmp[i_frame,:]/np.max(tmp[i_frame,:]) for i_frame in range(len(tmp))])
             tmp = tmp/np.max(tmp)
-            #output_x.append(np.roll((tmp.reshape(13, 256, 1)),randint(16),1))
             output_x.append((tmp.reshape(13, 256, 1)))
             if mat_tmp['label'] == 0:
                 output_y.append([1, 0, 0])
@@ -90,9 +87,9 @@ if __name__ == '__main__':
 
     initialiser = 'glorot_uniform'
     reg_lambda = 0.001
-    video_input = keras.layers.Input(shape=(len_video, res_r, 1),
+    HRRP_input = keras.layers.Input(shape=(len_video, res_r, 1),
                                      dtype='float32',
-                                     name='video_input')
+                                     name='HRRP_input')
     # normalizayion_input = keras.layers.Input(shape=(len_video,1),dtype='float32',name='normalization_input')
 
     pl = keras.layers.Conv2D(
@@ -104,7 +101,7 @@ if __name__ == '__main__':
         padding='same',
         kernel_initializer=initialiser,
         kernel_regularizer=tf.keras.regularizers.l2(reg_lambda),
-        name='Conv1')(video_input)
+        name='Conv1')(HRRP_input)
     k = 32
     for i_block in range(5):
         resblock_1_1 = keras.layers.BatchNormalization(name=str(i_block) +
@@ -155,14 +152,11 @@ if __name__ == '__main__':
 
 
     flatten = keras.layers.Flatten()(pl)
-    # extend = keras.layers.TimeDistributed(keras.layers.Dense(64,activation='relu',name='extend'))(normalizayion_input)
-    # merge = keras.layers.concatenate([flatten,extend],axis=-1,name='merge')
     dp = keras.layers.Dropout(0.5)(flatten)
     dense = keras.layers.Dense(64, activation='relu')(dp)
     output = keras.layers.Dense(3, activation='softmax')(dense)
 
-    # model = keras.models.Model(inputs=[video_input,normalizayion_input], outputs=output)
-    model = keras.models.Model(inputs=video_input, outputs=output)
+    model = keras.models.Model(inputs=HRRP_input, outputs=output)
     print(model.summary())
 
     model.compile(loss='categorical_crossentropy',
@@ -176,7 +170,7 @@ if __name__ == '__main__':
                                              patience=20,
                                              verbose=0,
                                              mode='auto')
-    modelname = 'model' + getTimeString(timestamp)
+    modelname = 'model_HRRP' + getTimeString(timestamp)
     check_point = keras.callbacks.ModelCheckpoint('model\\' + modelname +
                                                   '.h5',
                                                   monitor='val_acc',
@@ -206,7 +200,6 @@ if __name__ == '__main__':
     shuffle(eval_list)
 
 
-    # for i_epoch in range(10):
     history = model.fit_generator(
         generator=RangeDopplerSequence(train_list, 30, True),
         epochs=150,
@@ -216,7 +209,7 @@ if __name__ == '__main__':
         ])
 
 
-    logger.info('model' + getTimeString(timestamp) + ' is create by ' +
+    logger.info(modelname + ' is create by ' +
                 sys.argv[0])
     logger.info('HRRP, 3 classes')
     logger.info('-' * 49)

@@ -8,10 +8,8 @@ import scipy.io as scio
 import os
 from numpy.random import randint
 from random import shuffle
-# from tensorflow.keras import backend as K
-# from tensorflow.keras.layers.core import Lambda
 '''
-大型数据集
+finetune
 '''
 os.environ["CUDA_VISIBLE_DEVICES"] = "2" 
 
@@ -120,25 +118,164 @@ class EvalTensorBoard(keras.callbacks.TensorBoard):
 
 
 def createModel():
-    HRRP_model = tf.keras.models.load_model('model\\model1912031004.h5')
-    mD_model = tf.keras.models.load_model('model\\model1912022034.h5')
-
-    HRRP_model._name = 'model-HRRP'
-    mD_model._name = 'model-mD'
-
-    # len_video = 13
-    # res_r = 256
-    # res_c = 256
+    HRRP_model = create_HRRP_model()
+    HRRP_model.load_weights('model\\HRRPmodel_weights')
+    mD_model = create_mD_model()
+    mD_model.load_weights('model\\mDmodel_weights')
     HRRP_input = keras.layers.Input(shape=(len_video, res_r, 1),
-                                        dtype='float32',
-                                        name='HRRP_input')
+                                     dtype='float32',
+                                     name='HRRP_input')
     mD_input = keras.layers.Input(shape=(len_video, res_r, 1),
                                         dtype='float32',
                                         name='mD_input')
     output_HRRP = HRRP_model(HRRP_input)
     output_mD = mD_model(mD_input)
     output = WeightedAddLayer(name='output')([output_HRRP,output_mD])
-    model = keras.models.Model(inputs=[HRRP_input,mD_input], outputs=output)
+    model = keras.models.Model([HRRP_input,mD_input], output, name="fusion model")
+    return model
+
+
+def create_HRRP_model():
+    HRRP_input = keras.layers.Input(shape=(len_video, res_r, 1),
+                                     dtype='float32',
+                                     name='HRRP_input')
+    pl = keras.layers.Conv2D(
+        32,
+        (3, 5),
+        strides=(1, 2),
+        # activation='relu',
+        data_format='channels_last',
+        padding='same',
+        kernel_initializer=initialiser,
+        kernel_regularizer=tf.keras.regularizers.l2(reg_lambda),
+        name='HRRP_Conv1')(HRRP_input)
+    k = 32
+    for i_block in range(5):
+        resblock_1_1 = keras.layers.BatchNormalization(name='HRRP_'+str(i_block) +
+                                                       'res_BN1')(pl)
+        resblock_1_2 = keras.layers.Activation('relu',
+                                               name='HRRP_'+str(i_block) +
+                                               'res_Relu1')(resblock_1_1)
+        resblock_1_3 = keras.layers.Conv2D(
+            k, (3, 3),
+            strides=(1, 1),
+            # activation='relu',
+            data_format='channels_last',
+            padding='same',
+            kernel_initializer=initialiser,
+            kernel_regularizer=tf.keras.regularizers.l2(reg_lambda),
+            name='HRRP_'+str(i_block) + 'res_Conv1')(resblock_1_2)
+        resblock_2_1 = keras.layers.BatchNormalization(name='HRRP_'+str(i_block) +
+                                                       'res_BN2')(resblock_1_3)
+        resblock_2_2 = keras.layers.Activation('relu',
+                                               name='HRRP_'+str(i_block) +
+                                               'res_Relu2')(resblock_2_1)
+        resblock_2_3 = keras.layers.Conv2D(
+            k, (3, 3),
+            strides=(1, 1),
+            # activation='relu',
+            data_format='channels_last',
+            padding='same',
+            kernel_initializer=initialiser,
+            kernel_regularizer=tf.keras.regularizers.l2(reg_lambda),
+            name='HRRP_'+str(i_block) + 'res_Conv2')(resblock_2_2)
+        resblock_add = keras.layers.Add(name='HRRP_'+str(i_block) +
+                                        'res_Add')([pl, resblock_2_3])
+        if i_block%2==0:
+            pl = keras.layers.MaxPool2D((2, 2),
+                                        strides=(2, 2),
+                                        name='HRRP_'+str(i_block) + 'Pool')(resblock_add)
+        else :
+            k *= 2
+            pl = keras.layers.Conv2D(
+                k,(3,3),
+                strides=(1,2),
+                data_format='channels_last',
+                padding='same',
+                kernel_initializer=initialiser,
+                kernel_regularizer=tf.keras.regularizers.l2(reg_lambda),
+                name='HRRP_'+str(i_block) + 'ConvPool'
+            )(resblock_add)
+
+
+    flatten = keras.layers.Flatten()(pl)
+    dp = keras.layers.Dropout(0.5)(flatten)
+    dense = keras.layers.Dense(64, activation='relu')(dp)
+    output = keras.layers.Dense(2, activation='softmax')(dense)
+
+    model = keras.models.Model(inputs=HRRP_input, outputs=output, name='HRRP_model')
+    return model
+
+
+def create_mD_model():
+    mD_input = keras.layers.Input(shape=(len_video, res_r, 1),
+                                     dtype='float32',
+                                     name='mD_input')
+    pl = keras.layers.Conv2D(
+        32,
+        (3, 5),
+        strides=(1, 2),
+        # activation='relu',
+        data_format='channels_last',
+        padding='same',
+        kernel_initializer=initialiser,
+        kernel_regularizer=tf.keras.regularizers.l2(reg_lambda),
+        name='mD_Conv1')(mD_input)
+    k = 32
+    for i_block in range(5):
+        resblock_1_1 = keras.layers.BatchNormalization(name='mD_'+str(i_block) +
+                                                       'res_BN1')(pl)
+        resblock_1_2 = keras.layers.Activation('relu',
+                                               name='mD_'+str(i_block) +
+                                               'res_Relu1')(resblock_1_1)
+        resblock_1_3 = keras.layers.Conv2D(
+            k, (3, 3),
+            strides=(1, 1),
+            # activation='relu',
+            data_format='channels_last',
+            padding='same',
+            kernel_initializer=initialiser,
+            kernel_regularizer=tf.keras.regularizers.l2(reg_lambda),
+            name='mD_'+str(i_block) + 'res_Conv1')(resblock_1_2)
+        resblock_2_1 = keras.layers.BatchNormalization(name='mD_'+str(i_block) +
+                                                       'res_BN2')(resblock_1_3)
+        resblock_2_2 = keras.layers.Activation('relu',
+                                               name='mD_'+str(i_block) +
+                                               'res_Relu2')(resblock_2_1)
+        resblock_2_3 = keras.layers.Conv2D(
+            k, (3, 3),
+            strides=(1, 1),
+            # activation='relu',
+            data_format='channels_last',
+            padding='same',
+            kernel_initializer=initialiser,
+            kernel_regularizer=tf.keras.regularizers.l2(reg_lambda),
+            name='mD_'+str(i_block) + 'res_Conv2')(resblock_2_2)
+        resblock_add = keras.layers.Add(name='mD_'+str(i_block) +
+                                        'res_Add')([pl, resblock_2_3])
+        if i_block%2==0:
+            pl = keras.layers.MaxPool2D((2, 2),
+                                        strides=(2, 2),
+                                        name='mD_'+str(i_block) + 'Pool')(resblock_add)
+        else :
+            k *= 2
+            pl = keras.layers.Conv2D(
+                k,(3,3),
+                strides=(1,2),
+                data_format='channels_last',
+                padding='same',
+                kernel_initializer=initialiser,
+                kernel_regularizer=tf.keras.regularizers.l2(reg_lambda),
+                name='mD_'+str(i_block) + 'ConvPool'
+            )(resblock_add)
+
+
+    flatten = keras.layers.Flatten()(pl)
+    dp = keras.layers.Dropout(0.5)(flatten)
+    dense = keras.layers.Dense(64, activation='relu')(dp)
+    output = keras.layers.Dense(2, activation='softmax')(dense)
+
+    model = keras.models.Model(inputs=mD_input, outputs=output, name='mD_model')
     return model
 
 
@@ -196,7 +333,7 @@ if __name__ == '__main__':
                                              patience=20,
                                              verbose=0,
                                              mode='auto')
-    modelname = 'model' + getTimeString(timestamp)
+    modelname = 'model_fusion_finetune' + getTimeString(timestamp)
     check_point = keras.callbacks.ModelCheckpoint('model\\' + modelname +
                                                   '.h5',
                                                   monitor='val_acc',
@@ -221,7 +358,7 @@ if __name__ == '__main__':
         ])
 
 
-    logger.info('model' + getTimeString(timestamp) + ' is create by ' +
+    logger.info(modelname + ' is create by ' +
                 sys.argv[0])
-    logger.info('fusion')
+    logger.info('fusion finetune')
     logger.info('-' * 49)

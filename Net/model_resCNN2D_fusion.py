@@ -321,7 +321,7 @@ if __name__ == '__main__':
                                              patience=20,
                                              verbose=0,
                                              mode='auto')
-    modelname = 'model' + getTimeString(timestamp)
+    modelname = 'model_fusion' + getTimeString(timestamp)
     check_point = keras.callbacks.ModelCheckpoint('model\\' + modelname +
                                                   '.h5',
                                                   monitor='val_acc',
@@ -346,7 +346,7 @@ if __name__ == '__main__':
         ])
 
 
-    logger.info('model' + getTimeString(timestamp) + ' is create by ' +
+    logger.info(modelname + ' is create by ' +
                 sys.argv[0])
     logger.info('fusion')
     logger.info('-' * 49)

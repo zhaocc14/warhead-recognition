@@ -66,7 +66,7 @@ for i_rcs = 1:length(rcs_list)
                         label = 0; 
                     end
                     
-                    save(i_set+string(video_list(i_video).name),'echo','para');
+                    save(i_set+string(video_list(i_video).name),'echo','para','label');
                     disp(i_set+string(video_list(i_video).name))
                 end
             end

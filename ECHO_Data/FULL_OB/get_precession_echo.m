@@ -9,7 +9,7 @@ function echo=get_precession_echo(parameter,RCS,bias,snr)
 %       echo
 %       Mn : frequncey hopping code
 config;
-Mn=randi(M,1,Coh_pulse_num*Tsim);
+
 
 precession_angle = parameter.precession_angle;
 init_coneaxis_azi = parameter.init_coneaxis_azi;
@@ -67,7 +67,7 @@ for n=1:Coh_pulse_num*Tsim
     if translation_z==1
         sk(n,:)=AmpRes(1:64)*exp(-1j*2*pi*(f0+(1:64)*df)*2/c);
     else
-        sk(n,:)=AmpRes(1:64);
+        sk(n,:)=AmpRes(1:64).';
     end
     
 end

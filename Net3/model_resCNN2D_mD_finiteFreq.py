@@ -38,13 +38,15 @@ class MicroDopplerDataLoader(keras.utils.Sequence):
                 index_begin = np.random.randint(29-13)
             else:
                 index_begin = 0
-            tmp = mat_tmp['data'][index_begin:index_begin+13, :]
+            tmp = mat_tmp['mDmap'][index_begin:index_begin+13, :]
             tmp = tmp/np.max(tmp)
             output_x.append((tmp.reshape(13, 256, 1)))
             if file_name.split('\\')[-1].startswith('mDD'):
-                output_y.append([1, 0])
+                output_y.append([1, 0, 0])
+            elif file_name.split('\\')[-1].startswith('mDWarhead1'):
+                output_y.append([0, 0, 1])
             else:
-                output_y.append([0, 1])
+                output_y.append([0, 1, 0])
         output_x = np.array(output_x)
         output_y = np.array(output_y)
 
@@ -84,9 +86,9 @@ if __name__ == '__main__':
 
     initialiser = 'glorot_uniform'
     reg_lambda = 0.001
-    mD_input = keras.layers.Input(shape=(len_video, res_r, 1),
+    video_input = keras.layers.Input(shape=(len_video, res_r, 1),
                                      dtype='float32',
-                                     name='mD_input')
+                                     name='video_input')
     # normalizayion_input = keras.layers.Input(shape=(len_video,1),dtype='float32',name='normalization_input')
 
     pl = keras.layers.Conv2D(
@@ -98,7 +100,7 @@ if __name__ == '__main__':
         padding='same',
         kernel_initializer=initialiser,
         kernel_regularizer=tf.keras.regularizers.l2(reg_lambda),
-        name='Conv1')(mD_input)
+        name='Conv1')(video_input)
     k = 32
     for i_block in range(5):
         resblock_1_1 = keras.layers.BatchNormalization(name=str(i_block) +
@@ -151,9 +153,9 @@ if __name__ == '__main__':
     flatten = keras.layers.Flatten()(pl)
     dp = keras.layers.Dropout(0.5)(flatten)
     dense = keras.layers.Dense(64, activation='relu')(dp)
-    output = keras.layers.Dense(2, activation='softmax')(dense)
+    output = keras.layers.Dense(3, activation='softmax')(dense)
 
-    model = keras.models.Model(inputs=mD_input, outputs=output)
+    model = keras.models.Model(inputs=video_input, outputs=output)
     print(model.summary())
 
     model.compile(loss='categorical_crossentropy',
