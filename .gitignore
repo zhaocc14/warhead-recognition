@@ -4,3 +4,5 @@ RCSData/*.m
 *.h5
 *ipynb*
 *weights*
+*script*
+*.zip

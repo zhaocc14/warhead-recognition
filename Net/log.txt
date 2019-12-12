@@ -13,3 +13,6 @@
 2019-12-03 at 10:42:37 | INFO | model1912031025 is create by model_resCNN2D_mD_finiteFreq.py
 2019-12-03 at 10:42:37 | INFO | get mD by finite frequenct
 2019-12-03 at 10:42:37 | INFO | -------------------------------------------------
+2019-12-11 at 05:16:48 | INFO | model1912111625 is create by model_fusion_finetune.py
+2019-12-11 at 05:16:48 | INFO | fusion
+2019-12-11 at 05:16:48 | INFO | -------------------------------------------------

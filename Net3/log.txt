@@ -8,8 +8,14 @@
 2019-12-07 at 10:45:49 | INFO | fusion, 3 classes
 2019-12-07 at 10:45:49 | INFO | -------------------------------------------------
 2019-12-08 at 03:12:34 | INFO | model1912081447 is create by model_resCNN2D_HRRP.py
-2019-12-08 at 03:12:34 | INFO | HRRP, 3 classes, new
+2019-12-08 at 03:12:34 | INFO | HRRP, 3 classes
 2019-12-08 at 03:12:34 | INFO | -------------------------------------------------
 2019-12-08 at 03:40:32 | INFO | model1912081450 is create by model_resCNN2D_fusion.py
-2019-12-08 at 03:40:32 | INFO | fusion, 3 classes, new
+2019-12-08 at 03:40:32 | INFO | fusion, 3 classes
 2019-12-08 at 03:40:32 | INFO | -------------------------------------------------
+2019-12-10 at 04:00:04 | INFO | model1912101526 is create by model_resCNN2D_mD_finiteFreq.py
+2019-12-10 at 04:00:04 | INFO | get mD by finite frequenct
+2019-12-10 at 04:00:04 | INFO | -------------------------------------------------
+2019-12-11 at 05:26:27 | INFO | model1912111635 is create by model_fusion_finetune.py
+2019-12-11 at 05:26:27 | INFO | fusion
+2019-12-11 at 05:26:27 | INFO | -------------------------------------------------
